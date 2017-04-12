@@ -1,0 +1,57 @@
+{
+  "name": "@vanioinformatika/jwt-wrapper",
+  "version": "1.0.0",
+  "description": "A wrapper around the jsonwebtoken npm module that handles key ids.",
+  "author": "Gyula Szalai <gyszalai@gmail.com>",
+  "license": "MIT",
+  "contributors": [
+    {
+      "name": "Gyula Szalai",
+      "email": "gyszalai@gmail.com"
+    }
+  ],
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "mocha \"lib/**/*.spec.js\"",
+    "preversion": "git push && npm test",
+    "postversion": "git push && git push --tags"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vanioinformatika/node-jwt-wrapper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vanioinformatika/node-jwt-wrapper/issues"
+  },
+  "keywords": [
+    "node",
+    "jwt",
+    "jsonwebtoken"
+  ],
+  "dependencies": {
+    "base64url": "2.0.0",
+    "bluebird": "3.5.0",
+    "debug": "2.6.3",
+    "jsonwebtoken": "7.3.0"
+  },
+  "devDependencies": {
+    "chai": "3.5.0",
+    "chai-as-promised": "6.0.0",
+    "dirty-chai": "1.2.2",
+    "mocha": "3.2.0",
+    "mocha-junit-reporter": "1.13.0",
+    "standard": "10.0.1"
+  },
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "standard": {
+    "global": [
+      "__basedir",
+      "describe",
+      "it",
+      "before",
+      "after"
+    ]
+  }
+}
