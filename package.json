@@ -1,6 +1,6 @@
 {
   "name": "@vanioinformatika/jwt-wrapper",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A wrapper around the jsonwebtoken npm module that handles key ids.",
   "author": "Gyula Szalai <gyszalai@gmail.com>",
   "license": "MIT",
