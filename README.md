@@ -69,12 +69,6 @@ jwtHandler.create(tokenBody, keyId)
             // Handle other errors
           })
 ...
-
-// publishing public keys with express.js
-router.route('/certs').get((req, res) => {
-  const certificateList = keystore.fny.getAllCertificatesAsJWKS()
-  res.status(HttpStatus.OK).json({keys: certificateList})
-})
 ```
 
 ## Implementing key resolvers
