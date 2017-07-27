@@ -29,6 +29,8 @@
     "jsonwebtoken"
   ],
   "dependencies": {
+    "@types/bluebird": "^3.5.8",
+    "@types/jsonwebtoken": "^7.2.2",
     "base64url": "2.0.0",
     "bluebird": "3.5.0",
     "debug": "2.6.3",
@@ -53,5 +55,6 @@
       "before",
       "after"
     ]
-  }
+  },
+  "types": "types/index.d.ts"
 }
