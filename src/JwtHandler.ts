@@ -40,7 +40,7 @@ export class JwtHandler {
    * Extract key ID from the given JWT
    *
    * @param  {type} jwtRaw The JWT in raw form, i.e. Base64 coded parts separated with dots
-   * @return {Promise<Object, MissingKeyIdError>} Promise to the key id
+   * @return {Promise<string, MissingKeyIdError>} Promise to the key id
    */
   public extractKeyId (jwtRaw: string) : Promise<string> {
     try {
