@@ -10,12 +10,6 @@
       "email": "gyszalai@gmail.com"
     }
   ],
-  "main": "lib/index.js",
-  "scripts": {
-    "test": "mocha \"lib/**/*.spec.js\"",
-    "preversion": "git push && npm test",
-    "postversion": "git push && git push --tags"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/vanioinformatika/node-jwt-wrapper.git"
@@ -28,30 +22,45 @@
     "jwt",
     "jsonwebtoken"
   ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">6.9"
+  },
+  "scripts": {
+    "compile": "tsc",
+    "coverage": "nyc npm run test",
+    "coverage:ci": "npm run coverage && nyc report --reporter=text-lcov | coveralls",
+    "test": "mocha --recursive --compilers ts:ts-node/register src/**/*.spec.ts",
+    "tslint": "tslint src/**/*.ts",
+    "preversion": "git push && npm test",
+    "version": "npm run compile && git add -A dist",
+    "postversion": "git push && git push --tags"
+  },
   "dependencies": {
-    "base64url": "2.0.0",
+    "@types/base64url": "^2.0.3",
+    "@types/bluebird": "3.5.8",
+    "@types/debug": "0.0.29",
+    "@types/jsonwebtoken": "7.2.2",
+    "@types/node": "8.0.17",
+    "base64url": "1.0.6",
     "bluebird": "3.5.0",
-    "debug": "2.6.3",
-    "jsonwebtoken": "7.3.0"
+    "debug": "2.6.8",
+    "jsonwebtoken": "7.4.1"
   },
   "devDependencies": {
-    "chai": "3.5.0",
-    "chai-as-promised": "6.0.0",
-    "dirty-chai": "1.2.2",
-    "mocha": "3.2.0",
+    "@types/mocha": "2.2.41",
+    "@types/chai": "4.0.1",
+    "@types/chai-as-promised": "0.0.31",
+    "chai": "4.1.0",
+    "chai-as-promised": "7.1.1",
+    "coveralls": "2.13.1",
+    "dirty-chai": "2.0.1",
+    "mocha": "3.4.2",
     "mocha-junit-reporter": "1.13.0",
-    "standard": "10.0.1"
-  },
-  "engines": {
-    "node": ">=6.0.0"
-  },
-  "standard": {
-    "global": [
-      "__basedir",
-      "describe",
-      "it",
-      "before",
-      "after"
-    ]
+    "nyc": "11.0.2",
+    "ts-node": "3.3.0",
+    "tslint": "5.5.0",
+    "typescript": "2.4.2"
   }
 }
