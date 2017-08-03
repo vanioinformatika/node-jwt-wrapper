@@ -20,10 +20,10 @@ const tokenBody = {
   iss: 'issuer1',
   aud: 'audience1'
 }
-function pubkeyResolver (pubkeyId: string) : PubkeyData {
+function pubkeyResolver (pubkeyId: string): PubkeyData {
   return (pubkeyId === keyId) ? {cert: cert, alg: 'RS256'} : null
 }
-function privkeyResolver (privkeyId: string) : PrivkeyData {
+function privkeyResolver (privkeyId: string): PrivkeyData {
   return (privkeyId === keyId) ? {key: privateKey, passphrase: privateKeyPass, alg: 'RS256'} : null
 }
 

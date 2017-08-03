@@ -7,7 +7,7 @@ import { UnknownKeyIdError } from './UnknownKeyIdError'
 
 const keyId = 'keyid_1'
 
-function throwUnknownKeyIdError() {
+function throwUnknownKeyIdError () {
   throw new UnknownKeyIdError(keyId)
 }
 

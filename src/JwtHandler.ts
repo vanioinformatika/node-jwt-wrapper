@@ -22,13 +22,13 @@ export class JwtHandler {
   private debug: debug.IDebugger
   private privkeyResolverAsync?: PrivkeyResolverAsync
 
-  private pubkeyResolver? : PubkeyResolver
-  private privkeyResolver? : PrivkeyResolver
+  private pubkeyResolver?: PubkeyResolver
+  private privkeyResolver?: PrivkeyResolver
 
   private jwtVerifyAsync = Promise.promisify(jwt.verify) as JwtVerifyAsync
   private jwtSignAsync = Promise.promisify(jwt.sign) as JwtSignAsync
 
-  public constructor(debugNamePrefix: string, pubkeyResolver?: PubkeyResolver, privkeyResolver?: PrivkeyResolver) {
+  public constructor (debugNamePrefix: string, pubkeyResolver?: PubkeyResolver, privkeyResolver?: PrivkeyResolver) {
     this.debug = debug(debugNamePrefix + ':jwt.handler')
     // this.pubkeyResolverAsync = pubkeyResolver ? async (keyId: string) => pubkeyResolver(keyId) : null
     this.pubkeyResolver = pubkeyResolver
@@ -42,7 +42,7 @@ export class JwtHandler {
    * @param  {type} jwtRaw The JWT in raw form, i.e. Base64 coded parts separated with dots
    * @return {Promise<string, MissingKeyIdError>} Promise to the key id
    */
-  public extractKeyId (jwtRaw: string) : Promise<string> {
+  public extractKeyId (jwtRaw: string): Promise<string> {
     try {
       const jwtHeaderBase64 = jwtRaw.split('.', 1)
       const jwtHeader = JSON.parse(base64url.decode(jwtHeaderBase64[0]))
@@ -67,7 +67,7 @@ export class JwtHandler {
    * @param {Object} options Validation options (jsonwebtoken module options)
    * @return {Promise<Object, JsonWebTokenError>} Promise to the JWT body
    */
-  public verify (jwtRaw: string, options?: jwt.VerifyOptions) : Promise<object> {
+  public verify (jwtRaw: string, options?: jwt.VerifyOptions): Promise<object> {
     if (!jwtRaw) {
       return Promise.reject(new jwt.JsonWebTokenError('Empty JWT'))
     }
@@ -89,7 +89,6 @@ export class JwtHandler {
                })
   }
 
-
   /**
    * Creates a new JWT with the given body and signs it with the given key
    *
@@ -97,7 +96,7 @@ export class JwtHandler {
    * @param {string} keyId The ID of the signing key
    * @return {Promise<Object, JsonWebTokenError>} Promise to the JWT body
    */
-  public create (tokenBody: object, keyId: string) : Promise<string> {
+  public create (tokenBody: object, keyId: string): Promise<string> {
     debug('create, key id: ' + keyId)
     if (this.privkeyResolverAsync) {
       return this.privkeyResolverAsync(keyId)
@@ -112,6 +111,5 @@ export class JwtHandler {
       return Promise.reject(new Error('No private key resolver specified'))
     }
   }
-
 
 }

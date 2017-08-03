@@ -4,7 +4,8 @@ const debug = require("debug");
 const base64url = require("base64url");
 const Promise = require("bluebird");
 const jwt = require("jsonwebtoken");
-const errors_1 = require("./errors");
+const MissingKeyIdError_1 = require("./MissingKeyIdError");
+const UnknownKeyIdError_1 = require("./UnknownKeyIdError");
 class JwtHandler {
     constructor(debugNamePrefix, pubkeyResolver, privkeyResolver) {
         this.jwtVerifyAsync = Promise.promisify(jwt.verify);
@@ -13,14 +14,13 @@ class JwtHandler {
         // this.pubkeyResolverAsync = pubkeyResolver ? async (keyId: string) => pubkeyResolver(keyId) : null
         this.pubkeyResolver = pubkeyResolver;
         this.privkeyResolver = privkeyResolver;
-        this.pubkeyResolverAsync = pubkeyResolver ? Promise.method(pubkeyResolver) : undefined;
         this.privkeyResolverAsync = privkeyResolver ? Promise.method(privkeyResolver) : undefined;
     }
     /**
      * Extract key ID from the given JWT
      *
      * @param  {type} jwtRaw The JWT in raw form, i.e. Base64 coded parts separated with dots
-     * @return {Promise<Object, MissingKeyIdError>} Promise to the key id
+     * @return {Promise<string, MissingKeyIdError>} Promise to the key id
      */
     extractKeyId(jwtRaw) {
         try {
@@ -30,7 +30,7 @@ class JwtHandler {
                 return Promise.resolve(jwtHeader.kid);
             }
             else {
-                return Promise.reject(new errors_1.MissingKeyIdError());
+                return Promise.reject(new MissingKeyIdError_1.MissingKeyIdError());
             }
         }
         catch (err) {
@@ -65,7 +65,7 @@ class JwtHandler {
         })
             .then(([keyId, certData]) => {
             if (!certData) {
-                return Promise.reject(new errors_1.UnknownKeyIdError(keyId));
+                return Promise.reject(new UnknownKeyIdError_1.UnknownKeyIdError(keyId));
             }
             debug('cert found');
             return this.jwtVerifyAsync(jwtRaw, certData.cert, options);
@@ -84,7 +84,7 @@ class JwtHandler {
             return this.privkeyResolverAsync(keyId)
                 .then(signingKey => {
                 if (!signingKey) {
-                    throw new errors_1.UnknownKeyIdError('Unknown key id');
+                    throw new UnknownKeyIdError_1.UnknownKeyIdError('Unknown key id');
                 }
                 debug('priv key found');
                 return this.jwtSignAsync(tokenBody, signingKey, { algorithm: signingKey.alg, header: { 'kid': keyId } });

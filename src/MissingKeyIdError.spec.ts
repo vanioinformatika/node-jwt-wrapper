@@ -5,7 +5,7 @@ import 'mocha'
 
 import { MissingKeyIdError } from './MissingKeyIdError'
 
-function throwMissingKeyIdError() {
+function throwMissingKeyIdError () {
   throw new MissingKeyIdError()
 }
 
