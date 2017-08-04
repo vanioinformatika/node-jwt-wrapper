@@ -17,10 +17,11 @@ describe('UnknownKeyIdError', function () {
       throwUnknownKeyIdError()
     } catch (err) {
       expect(err.name).to.equal('UnknownKeyIdError')
-      expect(err instanceof UnknownKeyIdError).to.be.true
-      expect(err instanceof jwt.JsonWebTokenError).to.be.true
-      expect(err instanceof Error).to.be.true
-      expect(err.stack).to.exist
+      expect(err instanceof UnknownKeyIdError).to.equal(true)
+      expect(err instanceof jwt.JsonWebTokenError).to.equal(true)
+      expect(err instanceof Error).to.equal(true)
+      expect(err.stack).to.not.equal(null)
+      expect(err.stack).to.not.equal(undefined)
       expect(err.toString()).to.equal(`UnknownKeyIdError: unknown key id: ${keyId}`)
       expect(err.keyId).to.equal(keyId)
       expect(err.message).to.equal(`unknown key id: ${keyId}`)
