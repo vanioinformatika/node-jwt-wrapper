@@ -124,6 +124,13 @@ describe('JwtHandler', function () {
         jwtHandler.verify(jwtRaw)
       ).to.eventually.rejectedWith(UnknownKeyIdError).notify(done)
     })
+    it('should be throw an Error if no pubkey resolver is specified', function (done) {
+      const jwtHandler = new JwtHandler(debugNamePrefix, null, privkeyResolver)
+      const jwtRaw = generateJwt(keyId, tokenBody)
+      expect(
+        jwtHandler.verify(jwtRaw)
+      ).to.eventually.rejectedWith(Error).notify(done)
+    })
   })
   describe('create', function () {
     const jwtHandler = new JwtHandler(debugNamePrefix, pubkeyResolver, privkeyResolver)
@@ -139,6 +146,12 @@ describe('JwtHandler', function () {
       expect(
         jwtHandler.create(tokenBody, keyId)
       ).to.be.rejectedWith(UnknownKeyIdError).notify(done)
+    })
+    it('should be rejected with Error if no privkey resolver is specified', function (done) {
+      const jwtHandler = new JwtHandler(debugNamePrefix, pubkeyResolver, null)
+      expect(
+        jwtHandler.create(tokenBody, keyId)
+      ).to.be.rejectedWith(Error).notify(done)
     })
     // it('should be rejected with UnknownKeyIdError with a null key id', function (done) {
     //   expect(

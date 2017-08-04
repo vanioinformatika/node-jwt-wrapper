@@ -22,13 +22,13 @@ export class JwtHandler {
   private debug: debug.IDebugger
   private privkeyResolverAsync?: PrivkeyResolverAsync
 
-  private pubkeyResolver?: PubkeyResolver
-  private privkeyResolver?: PrivkeyResolver
+  private pubkeyResolver: PubkeyResolver | null
+  private privkeyResolver: PrivkeyResolver | null
 
   private jwtVerifyAsync = Promise.promisify(jwt.verify) as JwtVerifyAsync
   private jwtSignAsync = Promise.promisify(jwt.sign) as JwtSignAsync
 
-  public constructor (debugNamePrefix: string, pubkeyResolver?: PubkeyResolver, privkeyResolver?: PrivkeyResolver) {
+  public constructor (debugNamePrefix: string, pubkeyResolver: PubkeyResolver | null, privkeyResolver: PrivkeyResolver | null) {
     this.debug = debug(debugNamePrefix + ':jwt.handler')
     // this.pubkeyResolverAsync = pubkeyResolver ? async (keyId: string) => pubkeyResolver(keyId) : null
     this.pubkeyResolver = pubkeyResolver
@@ -52,11 +52,7 @@ export class JwtHandler {
         return Promise.reject(new MissingKeyIdError())
       }
     } catch (err) {
-      if (err instanceof SyntaxError) {
-        return Promise.reject(new jwt.JsonWebTokenError('JWT header parsing error'))
-      } else {
-        return Promise.reject(err)
-      }
+      return Promise.reject(new jwt.JsonWebTokenError('JWT header parsing error', err))
     }
   }
 
