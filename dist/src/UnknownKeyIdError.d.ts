@@ -1,4 +1,4 @@
-import { JsonWebTokenError } from 'jsonwebtoken';
+import { JsonWebTokenError } from "jsonwebtoken";
 /**
  * Error subclass for signaling that the given key id is not known
  */

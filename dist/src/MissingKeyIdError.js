@@ -6,7 +6,7 @@ const jsonwebtoken_1 = require("jsonwebtoken");
  */
 class MissingKeyIdError extends jsonwebtoken_1.JsonWebTokenError {
     constructor() {
-        super('missing key id');
+        super("missing key id");
         this.name = this.constructor.name;
         Error.captureStackTrace(this, this.constructor);
     }

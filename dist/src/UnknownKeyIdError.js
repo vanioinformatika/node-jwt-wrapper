@@ -10,7 +10,7 @@ class UnknownKeyIdError extends jsonwebtoken_1.JsonWebTokenError {
      * @param {string} keyId The key id
      */
     constructor(keyId) {
-        super('unknown key id: ' + keyId);
+        super("unknown key id: " + keyId);
         this.name = this.constructor.name;
         Error.captureStackTrace(this, this.constructor);
         this.keyId = keyId;

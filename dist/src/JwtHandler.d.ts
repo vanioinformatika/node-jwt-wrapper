@@ -1,4 +1,4 @@
-import * as jwt from 'jsonwebtoken';
+import * as jwt from "jsonwebtoken";
 export declare type PubkeyData = {
     cert: string;
     alg: string;
