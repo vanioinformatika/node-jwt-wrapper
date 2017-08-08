@@ -47,7 +47,7 @@
     "base64url": "1.0.6",
     "bluebird": "3.5.0",
     "debug": "2.6.8",
-    "jsonwebtoken": "7.4.1",
+    "jsonwebtoken": "7.4.2",
     "util.promisify": "^1.0.0"
   },
   "devDependencies": {
