@@ -1,7 +1,9 @@
 import debug = require('debug')
 import base64url = require('base64url')
-import * as Promise from 'bluebird'
 import * as jwt from 'jsonwebtoken'
+
+const util = require('util')
+require('util.promisify').shim()
 
 import { MissingKeyIdError } from './MissingKeyIdError'
 import { UnknownKeyIdError } from './UnknownKeyIdError'
@@ -15,25 +17,20 @@ export type PrivkeyResolver = (keyId: string) => PrivkeyData | Promise<PrivkeyDa
 type JwtVerifyAsync = (token: string, publicKey: string, options?: jwt.VerifyOptions) => Promise<object | string>
 type JwtSignAsync = (payload: object, privateKey: {}, options?: jwt.SignOptions) => Promise<string>
 
-type PrivkeyResolverAsync = (keyId: string) => Promise<PrivkeyData>
-
 export class JwtHandler {
 
   private debug: debug.IDebugger
-  private privkeyResolverAsync?: PrivkeyResolverAsync
 
   private pubkeyResolver: PubkeyResolver | null
   private privkeyResolver: PrivkeyResolver | null
 
-  private jwtVerifyAsync = Promise.promisify(jwt.verify) as JwtVerifyAsync
-  private jwtSignAsync = Promise.promisify(jwt.sign) as JwtSignAsync
+  private jwtVerifyAsync = util.promisify(jwt.verify) as JwtVerifyAsync
+  private jwtSignAsync = util.promisify(jwt.sign) as JwtSignAsync
 
   public constructor (debugNamePrefix: string, pubkeyResolver: PubkeyResolver | null, privkeyResolver: PrivkeyResolver | null) {
     this.debug = debug(debugNamePrefix + ':jwt.handler')
-    // this.pubkeyResolverAsync = pubkeyResolver ? async (keyId: string) => pubkeyResolver(keyId) : null
     this.pubkeyResolver = pubkeyResolver
     this.privkeyResolver = privkeyResolver
-    this.privkeyResolverAsync = privkeyResolver ? Promise.method(privkeyResolver) as PrivkeyResolverAsync : undefined
   }
 
   /**
@@ -42,17 +39,19 @@ export class JwtHandler {
    * @param  {type} jwtRaw The JWT in raw form, i.e. Base64 coded parts separated with dots
    * @return {Promise<string, MissingKeyIdError>} Promise to the key id
    */
-  public extractKeyId (jwtRaw: string): Promise<string> {
+  public extractKeyId (jwtRaw: string): string {
     try {
       const jwtHeaderBase64 = jwtRaw.split('.', 1)
       const jwtHeader = JSON.parse(base64url.decode(jwtHeaderBase64[0]))
       if (jwtHeader.kid) {
-        return Promise.resolve(jwtHeader.kid)
-      } else {
-        return Promise.reject(new MissingKeyIdError())
+        return jwtHeader.kid
       }
+      throw new MissingKeyIdError()
     } catch (err) {
-      return Promise.reject(new jwt.JsonWebTokenError('JWT header parsing error', err))
+      if (!(err instanceof MissingKeyIdError)) {
+        throw new jwt.JsonWebTokenError('JWT header parsing error', err)
+      }
+      throw err
     }
   }
 
@@ -63,26 +62,21 @@ export class JwtHandler {
    * @param {Object} options Validation options (jsonwebtoken module options)
    * @return {Promise<Object, JsonWebTokenError>} Promise to the JWT body
    */
-  public verify (jwtRaw: string, options?: jwt.VerifyOptions): Promise<object> {
+  public async verify (jwtRaw: string, options?: jwt.VerifyOptions): Promise<string | object> {
     if (!jwtRaw) {
-      return Promise.reject(new jwt.JsonWebTokenError('Empty JWT'))
+      throw new jwt.JsonWebTokenError('Empty JWT')
     }
-    return this.extractKeyId(jwtRaw)
-               .then(keyId => {
-                 debug('verify, key id: ' + keyId)
-                 if (this.pubkeyResolver) {
-                   return Promise.all([keyId, this.pubkeyResolver(keyId)])
-                 } else {
-                   throw new Error('No public key resolver specified')
-                 }
-               })
-               .then(([keyId, certData]) => {
-                 if (!certData) {
-                   return Promise.reject(new UnknownKeyIdError(keyId))
-                 }
-                 debug('cert found')
-                 return this.jwtVerifyAsync(jwtRaw, certData.cert, options)
-               })
+    const keyId = await this.extractKeyId(jwtRaw)
+    debug('verify, key id: ' + keyId)
+    if (this.pubkeyResolver) {
+      const certData = await this.pubkeyResolver(keyId)
+      if (!certData) {
+        throw new UnknownKeyIdError(keyId)
+      }
+      debug('cert found')
+      return this.jwtVerifyAsync(jwtRaw, certData.cert, options)
+    }
+    throw new Error('No public key resolver specified')
   }
 
   /**
@@ -92,20 +86,17 @@ export class JwtHandler {
    * @param {string} keyId The ID of the signing key
    * @return {Promise<Object, JsonWebTokenError>} Promise to the JWT body
    */
-  public create (tokenBody: object, keyId: string): Promise<string> {
+  public async create (tokenBody: object, keyId: string): Promise<string> {
     debug('create, key id: ' + keyId)
-    if (this.privkeyResolverAsync) {
-      return this.privkeyResolverAsync(keyId)
-      .then(signingKey => {
-        if (!signingKey) {
-          throw new UnknownKeyIdError('Unknown key id')
-        }
-        debug('priv key found')
-        return this.jwtSignAsync(tokenBody, signingKey, {algorithm: signingKey.alg, header: { 'kid': keyId }})
-      })
-    } else {
-      return Promise.reject(new Error('No private key resolver specified'))
+    if (this.privkeyResolver) {
+      const signingKey = await this.privkeyResolver(keyId)
+      if (!signingKey) {
+        throw new UnknownKeyIdError('Unknown key id')
+      }
+      debug('priv key found')
+      return this.jwtSignAsync(tokenBody, signingKey, {algorithm: signingKey.alg, header: { 'kid': keyId }})
     }
+    throw new Error('No private key resolver specified')
   }
 
 }

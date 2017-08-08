@@ -1,5 +1,3 @@
-/// <reference types="bluebird" />
-import * as Promise from 'bluebird';
 import * as jwt from 'jsonwebtoken';
 export declare type PubkeyData = {
     cert: string;
@@ -14,19 +12,18 @@ export declare type PubkeyResolver = (keyId: string) => PubkeyData | Promise<Pub
 export declare type PrivkeyResolver = (keyId: string) => PrivkeyData | Promise<PrivkeyData>;
 export declare class JwtHandler {
     private debug;
-    private privkeyResolverAsync?;
-    private pubkeyResolver?;
-    private privkeyResolver?;
+    private pubkeyResolver;
+    private privkeyResolver;
     private jwtVerifyAsync;
     private jwtSignAsync;
-    constructor(debugNamePrefix: string, pubkeyResolver?: PubkeyResolver, privkeyResolver?: PrivkeyResolver);
+    constructor(debugNamePrefix: string, pubkeyResolver: PubkeyResolver | null, privkeyResolver: PrivkeyResolver | null);
     /**
      * Extract key ID from the given JWT
      *
      * @param  {type} jwtRaw The JWT in raw form, i.e. Base64 coded parts separated with dots
      * @return {Promise<string, MissingKeyIdError>} Promise to the key id
      */
-    extractKeyId(jwtRaw: string): Promise<string>;
+    extractKeyId(jwtRaw: string): string;
     /**
      * Validates the given JWT
      *
@@ -34,7 +31,7 @@ export declare class JwtHandler {
      * @param {Object} options Validation options (jsonwebtoken module options)
      * @return {Promise<Object, JsonWebTokenError>} Promise to the JWT body
      */
-    verify(jwtRaw: string, options?: jwt.VerifyOptions): Promise<object>;
+    verify(jwtRaw: string, options?: jwt.VerifyOptions): Promise<string | object>;
     /**
      * Creates a new JWT with the given body and signs it with the given key
      *

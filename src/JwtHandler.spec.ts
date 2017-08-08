@@ -28,33 +28,30 @@ function privkeyResolver (privkeyId: string): PrivkeyData {
 }
 
 describe('JwtHandler', function () {
+
   describe('extractKeyId', function () {
     const jwtHandler = new JwtHandler(debugNamePrefix, pubkeyResolver, privkeyResolver)
-    it('should return the correct key id from the given JWT', function (done) {
+    it('should return the correct key id from the given JWT', () => {
       const jwtRaw = generateJwt(keyId, tokenBody)
-      expect(
-        jwtHandler.extractKeyId(jwtRaw)
-      ).to.eventually.equal(keyId).notify(done)
+      expect(jwtHandler.extractKeyId(jwtRaw)).to.equal(keyId)
     })
-    it('should be rejected with MissingKeyIdError if the JWT does not contain a kid property in the header', function (done) {
+
+    it('should be rejected with MissingKeyIdError if the JWT does not contain a kid property in the header', function () {
       const jwtRaw = generateJwt(null, tokenBody)
-      expect(
-        jwtHandler.extractKeyId(jwtRaw)
-      ).to.eventually.rejectedWith(MissingKeyIdError).notify(done)
+      expect(() => jwtHandler.extractKeyId(jwtRaw)).to.throw(MissingKeyIdError)
     })
-    it('should be rejected with JsonWebTokenError if the JWT header is not JSON', function (done) {
+
+    it('should be rejected with JsonWebTokenError if the JWT header is not JSON', function () {
       const jwtRaw = '76576576werwerwterertertert.7868765348765zurtiueziuerziutziuzeriuziuwtzuizi34986349.345765347654376543765735765tzreztwrwueruz'
-      expect(
-        jwtHandler.extractKeyId(jwtRaw)
-      ).to.eventually.rejectedWith(jwt.JsonWebTokenError).notify(done)
+      expect(() => jwtHandler.extractKeyId(jwtRaw)).to.throw(jwt.JsonWebTokenError)
     })
-    it('should be rejected with JsonWebTokenError if the JWT is complete garbage', function (done) {
+
+    it('should be rejected with JsonWebTokenError if the JWT is complete garbage', function () {
       const jwtRaw = '!\\76576576w!!--///erwerwterertertertöüóAAŐÚÉÁŰ<<7868765348765>> zurtiueziuerz{ }iutziuzer*****iuziuwtzuizi34986349345765347654376543765735765+++====tzreztwrwueruz'
-      expect(
-        jwtHandler.extractKeyId(jwtRaw)
-      ).to.eventually.rejectedWith(jwt.JsonWebTokenError).notify(done)
+      expect(() => jwtHandler.extractKeyId(jwtRaw)).to.throw(jwt.JsonWebTokenError)
     })
   })
+
   describe('verify', function () {
     const jwtHandler = new JwtHandler(debugNamePrefix, pubkeyResolver, privkeyResolver)
     it('should return the JWT body if passed a valid JWT', function (done) {
@@ -63,18 +60,21 @@ describe('JwtHandler', function () {
         jwtHandler.verify(jwtRaw)
       ).to.eventually.deep.equal(tokenBody).notify(done)
     })
+
     it('should return the JWT body if passed a valid JWT and validation options that matches the JWT', function (done) {
       const jwtRaw = generateJwt(keyId, tokenBody)
       expect(
         jwtHandler.verify(jwtRaw, {issuer: tokenBody.iss})
       ).to.eventually.deep.equal(tokenBody).notify(done)
     })
+
     it('should be rejected with JsonWebTokenError if the validation options do not match', function (done) {
       const jwtRaw = generateJwt(keyId, tokenBody)
       expect(
         jwtHandler.verify(jwtRaw, {issuer: 'expected_issuer'})
       ).to.eventually.rejectedWith(jwt.JsonWebTokenError).notify(done)
     })
+
     it('should be rejected with TokenExpiredError if the JWT is already expired', function (done) {
       const tokenBody = {
         iat: Math.floor(Date.now() / 1000),
@@ -86,6 +86,7 @@ describe('JwtHandler', function () {
         jwtHandler.verify(jwtRaw)
       ).to.eventually.rejectedWith(jwt.TokenExpiredError).notify(done)
     })
+
     it('should be rejected with NotBeforeError if the is not yet valid', function (done) {
       const tokenBody = {
         iat: Math.floor(Date.now() / 1000),
@@ -97,33 +98,39 @@ describe('JwtHandler', function () {
         jwtHandler.verify(jwtRaw)
       ).to.eventually.rejectedWith(jwt.NotBeforeError).notify(done)
     })
+
     it('should be rejected with JsonWebTokenError if the JWT is empty', function (done) {
       expect(
          jwtHandler.verify('')
       ).to.be.rejectedWith(jwt.JsonWebTokenError).notify(done)
     })
-    // it('should be rejected with JsonWebTokenError if the JWT is null', function (done) {
-    //   expect(
-    //      jwtHandler.verify(null)
-    //   ).to.be.rejectedWith(jwt.JsonWebTokenError).notify(done)
-    // })
-    // it('should be rejected with JsonWebTokenError if the JWT is undefined', function (done) {
-    //   expect(
-    //      jwtHandler.verify(undefined)
-    //   ).to.be.rejectedWith(jwt.JsonWebTokenError).notify(done)
-    // })
+
+    it('should be rejected with JsonWebTokenError if the JWT is null', function (done) {
+      expect(
+         jwtHandler.verify(null as any)
+      ).to.be.rejectedWith(jwt.JsonWebTokenError).notify(done)
+    })
+
+    it('should be rejected with JsonWebTokenError if the JWT is undefined', function (done) {
+      expect(
+         jwtHandler.verify(undefined as any)
+      ).to.be.rejectedWith(jwt.JsonWebTokenError).notify(done)
+    })
+
     it('should be rejected with MissingKeyIdError if the JWT does not contain a kid property in the header', function (done) {
       const jwtRaw = generateJwt(null, tokenBody)
       expect(
         jwtHandler.verify(jwtRaw)
       ).to.eventually.rejectedWith(MissingKeyIdError).notify(done)
     })
+
     it('should be rejected with UnknownKeyIdError if the key id is unknown', function (done) {
       const jwtRaw = generateJwt('unknown-key-id', tokenBody)
       expect(
         jwtHandler.verify(jwtRaw)
       ).to.eventually.rejectedWith(UnknownKeyIdError).notify(done)
     })
+
     it('should be throw an Error if no pubkey resolver is specified', function (done) {
       const jwtHandler = new JwtHandler(debugNamePrefix, null, privkeyResolver)
       const jwtRaw = generateJwt(keyId, tokenBody)
@@ -132,6 +139,7 @@ describe('JwtHandler', function () {
       ).to.eventually.rejectedWith(Error).notify(done)
     })
   })
+
   describe('create', function () {
     const jwtHandler = new JwtHandler(debugNamePrefix, pubkeyResolver, privkeyResolver)
     it('should create a valid JWT if called with a key id that exists', function (done) {

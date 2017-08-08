@@ -1,20 +1,27 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const debug = require("debug");
 const base64url = require("base64url");
-const Promise = require("bluebird");
 const jwt = require("jsonwebtoken");
+const util = require('util');
+require('util.promisify').shim();
 const MissingKeyIdError_1 = require("./MissingKeyIdError");
 const UnknownKeyIdError_1 = require("./UnknownKeyIdError");
 class JwtHandler {
     constructor(debugNamePrefix, pubkeyResolver, privkeyResolver) {
-        this.jwtVerifyAsync = Promise.promisify(jwt.verify);
-        this.jwtSignAsync = Promise.promisify(jwt.sign);
+        this.jwtVerifyAsync = util.promisify(jwt.verify);
+        this.jwtSignAsync = util.promisify(jwt.sign);
         this.debug = debug(debugNamePrefix + ':jwt.handler');
-        // this.pubkeyResolverAsync = pubkeyResolver ? async (keyId: string) => pubkeyResolver(keyId) : null
         this.pubkeyResolver = pubkeyResolver;
         this.privkeyResolver = privkeyResolver;
-        this.privkeyResolverAsync = privkeyResolver ? Promise.method(privkeyResolver) : undefined;
     }
     /**
      * Extract key ID from the given JWT
@@ -27,19 +34,15 @@ class JwtHandler {
             const jwtHeaderBase64 = jwtRaw.split('.', 1);
             const jwtHeader = JSON.parse(base64url.decode(jwtHeaderBase64[0]));
             if (jwtHeader.kid) {
-                return Promise.resolve(jwtHeader.kid);
+                return jwtHeader.kid;
             }
-            else {
-                return Promise.reject(new MissingKeyIdError_1.MissingKeyIdError());
-            }
+            throw new MissingKeyIdError_1.MissingKeyIdError();
         }
         catch (err) {
-            if (err instanceof SyntaxError) {
-                return Promise.reject(new jwt.JsonWebTokenError('JWT header parsing error'));
+            if (!(err instanceof MissingKeyIdError_1.MissingKeyIdError)) {
+                throw new jwt.JsonWebTokenError('JWT header parsing error', err);
             }
-            else {
-                return Promise.reject(err);
-            }
+            throw err;
         }
     }
     /**
@@ -50,25 +53,21 @@ class JwtHandler {
      * @return {Promise<Object, JsonWebTokenError>} Promise to the JWT body
      */
     verify(jwtRaw, options) {
-        if (!jwtRaw) {
-            return Promise.reject(new jwt.JsonWebTokenError('Empty JWT'));
-        }
-        return this.extractKeyId(jwtRaw)
-            .then(keyId => {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!jwtRaw) {
+                throw new jwt.JsonWebTokenError('Empty JWT');
+            }
+            const keyId = yield this.extractKeyId(jwtRaw);
             debug('verify, key id: ' + keyId);
             if (this.pubkeyResolver) {
-                return Promise.all([keyId, this.pubkeyResolver(keyId)]);
+                const certData = yield this.pubkeyResolver(keyId);
+                if (!certData) {
+                    throw new UnknownKeyIdError_1.UnknownKeyIdError(keyId);
+                }
+                debug('cert found');
+                return this.jwtVerifyAsync(jwtRaw, certData.cert, options);
             }
-            else {
-                throw new Error('No public key resolver specified');
-            }
-        })
-            .then(([keyId, certData]) => {
-            if (!certData) {
-                return Promise.reject(new UnknownKeyIdError_1.UnknownKeyIdError(keyId));
-            }
-            debug('cert found');
-            return this.jwtVerifyAsync(jwtRaw, certData.cert, options);
+            throw new Error('No public key resolver specified');
         });
     }
     /**
@@ -79,20 +78,18 @@ class JwtHandler {
      * @return {Promise<Object, JsonWebTokenError>} Promise to the JWT body
      */
     create(tokenBody, keyId) {
-        debug('create, key id: ' + keyId);
-        if (this.privkeyResolverAsync) {
-            return this.privkeyResolverAsync(keyId)
-                .then(signingKey => {
+        return __awaiter(this, void 0, void 0, function* () {
+            debug('create, key id: ' + keyId);
+            if (this.privkeyResolver) {
+                const signingKey = yield this.privkeyResolver(keyId);
                 if (!signingKey) {
                     throw new UnknownKeyIdError_1.UnknownKeyIdError('Unknown key id');
                 }
                 debug('priv key found');
                 return this.jwtSignAsync(tokenBody, signingKey, { algorithm: signingKey.alg, header: { 'kid': keyId } });
-            });
-        }
-        else {
-            return Promise.reject(new Error('No private key resolver specified'));
-        }
+            }
+            throw new Error('No private key resolver specified');
+        });
     }
 }
 exports.JwtHandler = JwtHandler;
