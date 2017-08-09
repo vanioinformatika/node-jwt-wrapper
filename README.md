@@ -3,7 +3,7 @@
 
 # node-jwt-wrapper
 A promisified wrapper around the jsonwebtoken npm module that handles key ids.
-Uses bluebird promises.
+Uses native promises.
 
 ## Usage
 
@@ -38,24 +38,10 @@ jwtHandler.verify(jwtRaw)
           .then(jwtBody => {
             ...
           })
-          .catch(jwt.MissingKeyIdError, err => {
-            // Handle MissingKeyIdError
-          })
-          .catch(jwt.UnknownKeyIdError, err => {
-            // Handle UnknownKeyIdError
-          })
-          .catch(jwt.TokenExpiredError, err => {
-            // Handle TokenExpiredError
-          })
-          .catch(jwt.NotBeforeError, err => {
-            // Handle NotBeforeError
-          })
-          .catch(jwt.JsonWebTokenError, err => {
-            // Handle other JWT related errors
-          })
           .catch(err => {
-            // Handle other errors
+            // Handle errors
           })
+
 
 // Creating JWT tokens
 const keyId = 'keyid1'
@@ -65,11 +51,8 @@ jwtHandler.create(tokenBody, keyId)
           .then(jwt => {
             ...
           })
-          .catch(jwt.UnknownKeyIdError, err => {
-            // Handle UnknownKeyIdError
-          })
           .catch(err => {
-            // Handle other errors
+            // Handle errors
           })
 ...
 ```
