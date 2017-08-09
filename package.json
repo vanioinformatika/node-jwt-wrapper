@@ -39,16 +39,14 @@
   },
   "dependencies": {
     "@types/base64url": "2.0.3",
-    "@types/bluebird": "3.5.8",
     "@types/debug": "0.0.29",
     "@types/jsonwebtoken": "7.2.3",
     "@types/node": "6.0.85",
     "@types/util.promisify": "1.0.0",
     "base64url": "1.0.6",
-    "bluebird": "3.5.0",
     "debug": "2.6.8",
     "jsonwebtoken": "7.4.2",
-    "util.promisify": "^1.0.0"
+    "util.promisify": "1.0.0"
   },
   "devDependencies": {
     "@types/chai": "4.0.2",
