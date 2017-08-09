@@ -1,4 +1,5 @@
 [![Coverage Status](https://coveralls.io/repos/github/vanioinformatika/node-jwt-wrapper/badge.svg?branch=master)](https://coveralls.io/github/vanioinformatika/node-jwt-wrapper?branch=master)
+[![Build Status](https://travis-ci.org/vanioinformatika/node-jwt-wrapper.svg?branch=master)](https://travis-ci.org/vanioinformatika/node-jwt-wrapper)
 
 # node-jwt-wrapper
 A promisified wrapper around the jsonwebtoken npm module that handles key ids.
