@@ -30,7 +30,7 @@ function privkeyResolver (keyId) {
   return {key, passphrase, alg}
 }
 
-const jwtHandler = jwt.Handler('myproject', pubkeyResolver, privkeyResolver)
+const jwtHandler = new jwt.JwtHandler('myproject', pubkeyResolver, privkeyResolver)
 
 // Verifying JWT tokens
 jwtHandler.verify(jwtRaw)
