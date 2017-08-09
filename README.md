@@ -1,3 +1,5 @@
+[![Coverage Status](https://coveralls.io/repos/github/vanioinformatika/node-jwt-wrapper/badge.svg?branch=master)](https://coveralls.io/github/vanioinformatika/node-jwt-wrapper?branch=master)
+
 # node-jwt-wrapper
 A promisified wrapper around the jsonwebtoken npm module that handles key ids.
 Uses bluebird promises.
@@ -28,7 +30,7 @@ function privkeyResolver (keyId) {
   return {key, passphrase, alg}
 }
 
-const jwtHandler = jwt.Handler('myproject', pubkeyResolver, privkeyResolver)
+const jwtHandler = new jwt.JwtHandler('myproject', pubkeyResolver, privkeyResolver)
 
 // Verifying JWT tokens
 jwtHandler.verify(jwtRaw)
