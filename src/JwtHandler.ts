@@ -82,7 +82,8 @@ export class JwtHandler {
      * @param {Object} options Validation options (jsonwebtoken module options)
      * @return {Promise<Object, JsonWebTokenError>} Promise to the JWT body
      */
-    public async verify<T extends string | { [key: string]: any }>(jwtRaw: string, options?: jwt.VerifyOptions): Promise<T> {
+    public async verify<T extends string | { [key: string]: any }>(jwtRaw: string,
+                                                                   options?: jwt.VerifyOptions): Promise<T> {
         if (!jwtRaw) {
             throw new jwt.JsonWebTokenError("Empty JWT")
         }
