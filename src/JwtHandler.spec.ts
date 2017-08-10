@@ -1,183 +1,186 @@
 import * as chai from "chai"
 import * as chaiAsPromised from "chai-as-promised"
 import * as jwt from "jsonwebtoken"
-chai.use(chaiAsPromised)
-const { expect } = chai
-
 import "mocha"
 
-import { JwtHandler, PrivkeyData, PubkeyData } from "./JwtHandler"
-import { MissingKeyIdError } from "./MissingKeyIdError"
-import { UnknownKeyIdError } from "./UnknownKeyIdError"
+import {JwtHandler, PrivkeyData, PubkeyData} from "./JwtHandler"
+import {MissingKeyIdError} from "./MissingKeyIdError"
+import {UnknownKeyIdError} from "./UnknownKeyIdError"
+
+chai.use(chaiAsPromised)
+const {expect} = chai
 
 const debugNamePrefix = "test"
 
 // fixtures
 const keyId = "abc1234"
 const tokenBody = {
-  iat: Math.floor(Date.now() / 1000),
-  dummy: "dummy",
-  iss: "issuer1",
-  aud: "audience1",
+    iat: Math.floor(Date.now() / 1000),
+    dummy: "dummy",
+    iss: "issuer1",
+    aud: "audience1",
 }
+
 function pubkeyResolver(pubkeyId: string): PubkeyData {
-  return (pubkeyId === keyId) ? {cert, alg: "RS256"} : null
+    return (pubkeyId === keyId) ? {cert, alg: "RS256"} : null
 }
+
 function privkeyResolver(privkeyId: string): PrivkeyData {
-  return (privkeyId === keyId) ? {key: privateKey, passphrase: privateKeyPass, alg: "RS256"} : null
+    return (privkeyId === keyId) ? {key: privateKey, passphrase: privateKeyPass, alg: "RS256"} : null
 }
 
 describe("JwtHandler", () => {
 
-  describe("extractKeyId", () => {
-    const jwtHandler = new JwtHandler(debugNamePrefix, pubkeyResolver, privkeyResolver)
-    it("should return the correct key id from the given JWT", () => {
-      const jwtRaw = generateJwt(keyId, tokenBody)
-      expect(jwtHandler.extractKeyId(jwtRaw)).to.equal(keyId)
+    describe("extractKeyId", () => {
+        const jwtHandler = new JwtHandler(debugNamePrefix, pubkeyResolver, privkeyResolver)
+        it("should return the correct key id from the given JWT", () => {
+            const jwtRaw = generateJwt(keyId, tokenBody)
+            expect(jwtHandler.extractKeyId(jwtRaw)).to.equal(keyId)
+        })
+
+        it("should be rejected with MissingKeyIdError if the JWT does not contain a kid property in the header", () => {
+            const jwtRaw = generateJwt(null, tokenBody)
+            expect(() => jwtHandler.extractKeyId(jwtRaw)).to.throw(MissingKeyIdError)
+        })
+
+        it("should be rejected with JsonWebTokenError if the JWT header is not JSON", () => {
+            // tslint:disable-next-line:max-line-length
+            const jwtRaw = "76576576werwerwterertertert.7868765348765zurtiueziuerziutziuzeriuziuwtzuizi34986349.345765347654376543765735765tzreztwrwueruz"
+            expect(() => jwtHandler.extractKeyId(jwtRaw)).to.throw(jwt.JsonWebTokenError)
+        })
+
+        it("should be rejected with JsonWebTokenError if the JWT is complete garbage", () => {
+            // tslint:disable-next-line:max-line-length
+            const jwtRaw = "!\\76576576w!!--///erwerwterertertertöüóAAŐÚÉÁŰ<<7868765348765>> zurtiueziuerz{ }iutziuzer*****iuziuwtzuizi34986349345765347654376543765735765+++====tzreztwrwueruz"
+            expect(() => jwtHandler.extractKeyId(jwtRaw)).to.throw(jwt.JsonWebTokenError)
+        })
     })
 
-    it("should be rejected with MissingKeyIdError if the JWT does not contain a kid property in the header", () => {
-      const jwtRaw = generateJwt(null, tokenBody)
-      expect(() => jwtHandler.extractKeyId(jwtRaw)).to.throw(MissingKeyIdError)
+    describe("verify", () => {
+        const jwtHandler = new JwtHandler(debugNamePrefix, pubkeyResolver, privkeyResolver)
+        it("should return the JWT body if passed a valid JWT", (done) => {
+            const jwtRaw = generateJwt(keyId, tokenBody)
+            expect(
+                jwtHandler.verify(jwtRaw),
+            ).to.eventually.deep.equal(tokenBody).notify(done)
+        })
+
+        it("should return the JWT body if passed a valid JWT and validation options that matches the JWT", (done) => {
+            const jwtRaw = generateJwt(keyId, tokenBody)
+            expect(
+                jwtHandler.verify(jwtRaw, {issuer: tokenBody.iss}),
+            ).to.eventually.deep.equal(tokenBody).notify(done)
+        })
+
+        it("should be rejected with JsonWebTokenError if the validation options do not match", (done) => {
+            const jwtRaw = generateJwt(keyId, tokenBody)
+            expect(
+                jwtHandler.verify(jwtRaw, {issuer: "expected_issuer"}),
+            ).to.eventually.rejectedWith(jwt.JsonWebTokenError).notify(done)
+        })
+
+        it("should be rejected with TokenExpiredError if the JWT is already expired", (done) => {
+            const tokenBodyExpired = {
+                iat: Math.floor(Date.now() / 1000),
+                dummy: "dummy",
+                exp: Math.floor(Date.now() / 1000) - 5000,
+            }
+            const jwtRaw = generateJwt(keyId, tokenBodyExpired)
+            expect(
+                jwtHandler.verify(jwtRaw),
+            ).to.eventually.rejectedWith(jwt.TokenExpiredError).notify(done)
+        })
+
+        it("should be rejected with NotBeforeError if the is not yet valid", (done) => {
+            const tokenBodyNbf = {
+                iat: Math.floor(Date.now() / 1000),
+                dummy: "dummy",
+                nbf: Math.floor(Date.now() / 1000) + 1000,
+            }
+            const jwtRaw = generateJwt(keyId, tokenBodyNbf)
+            expect(
+                jwtHandler.verify(jwtRaw),
+            ).to.eventually.rejectedWith(jwt.NotBeforeError).notify(done)
+        })
+
+        it("should be rejected with JsonWebTokenError if the JWT is empty", (done) => {
+            expect(
+                jwtHandler.verify(""),
+            ).to.be.rejectedWith(jwt.JsonWebTokenError).notify(done)
+        })
+
+        it("should be rejected with JsonWebTokenError if the JWT is null", (done) => {
+            expect(
+                jwtHandler.verify(null as any),
+            ).to.be.rejectedWith(jwt.JsonWebTokenError).notify(done)
+        })
+
+        it("should be rejected with JsonWebTokenError if the JWT is undefined", (done) => {
+            expect(
+                jwtHandler.verify(undefined as any),
+            ).to.be.rejectedWith(jwt.JsonWebTokenError).notify(done)
+        })
+
+        it("should be rejected with MissingKeyIdError if the JWT does not contain a kid property in the header", (done) => {
+            const jwtRaw = generateJwt(null, tokenBody)
+            expect(
+                jwtHandler.verify(jwtRaw),
+            ).to.eventually.rejectedWith(MissingKeyIdError).notify(done)
+        })
+
+        it("should be rejected with UnknownKeyIdError if the key id is unknown", (done) => {
+            const jwtRaw = generateJwt("unknown-key-id", tokenBody)
+            expect(
+                jwtHandler.verify(jwtRaw),
+            ).to.eventually.rejectedWith(UnknownKeyIdError).notify(done)
+        })
+
+        it("should be throw an Error if no pubkey resolver is specified", (done) => {
+            const jwtHandlerNoPubkeyResolver = new JwtHandler(debugNamePrefix, null, privkeyResolver)
+            const jwtRaw = generateJwt(keyId, tokenBody)
+            expect(
+                jwtHandlerNoPubkeyResolver.verify(jwtRaw),
+            ).to.eventually.rejectedWith(Error).notify(done)
+        })
     })
 
-    it("should be rejected with JsonWebTokenError if the JWT header is not JSON", () => {
-      // tslint:disable-next-line:max-line-length
-      const jwtRaw = "76576576werwerwterertertert.7868765348765zurtiueziuerziutziuzeriuziuwtzuizi34986349.345765347654376543765735765tzreztwrwueruz"
-      expect(() => jwtHandler.extractKeyId(jwtRaw)).to.throw(jwt.JsonWebTokenError)
-    })
-
-    it("should be rejected with JsonWebTokenError if the JWT is complete garbage", () => {
-      // tslint:disable-next-line:max-line-length
-      const jwtRaw = "!\\76576576w!!--///erwerwterertertertöüóAAŐÚÉÁŰ<<7868765348765>> zurtiueziuerz{ }iutziuzer*****iuziuwtzuizi34986349345765347654376543765735765+++====tzreztwrwueruz"
-      expect(() => jwtHandler.extractKeyId(jwtRaw)).to.throw(jwt.JsonWebTokenError)
-    })
-  })
-
-  describe("verify", () => {
-    const jwtHandler = new JwtHandler(debugNamePrefix, pubkeyResolver, privkeyResolver)
-    it("should return the JWT body if passed a valid JWT", (done) => {
-      const jwtRaw = generateJwt(keyId, tokenBody)
-      expect(
-        jwtHandler.verify(jwtRaw)
-      ).to.eventually.deep.equal(tokenBody).notify(done)
-    })
-
-    it("should return the JWT body if passed a valid JWT and validation options that matches the JWT", (done) => {
-      const jwtRaw = generateJwt(keyId, tokenBody)
-      expect(
-        jwtHandler.verify(jwtRaw, {issuer: tokenBody.iss})
-      ).to.eventually.deep.equal(tokenBody).notify(done)
-    })
-
-    it("should be rejected with JsonWebTokenError if the validation options do not match", (done) => {
-      const jwtRaw = generateJwt(keyId, tokenBody)
-      expect(
-        jwtHandler.verify(jwtRaw, {issuer: "expected_issuer"})
-      ).to.eventually.rejectedWith(jwt.JsonWebTokenError).notify(done)
-    })
-
-    it("should be rejected with TokenExpiredError if the JWT is already expired", (done) => {
-      const tokenBodyExpired = {
-        iat: Math.floor(Date.now() / 1000),
-        dummy: "dummy",
-        exp: Math.floor(Date.now() / 1000) - 5000,
-      }
-      const jwtRaw = generateJwt(keyId, tokenBodyExpired)
-      expect(
-        jwtHandler.verify(jwtRaw)
-      ).to.eventually.rejectedWith(jwt.TokenExpiredError).notify(done)
-    })
-
-    it("should be rejected with NotBeforeError if the is not yet valid", (done) => {
-      const tokenBodyNbf = {
-        iat: Math.floor(Date.now() / 1000),
-        dummy: "dummy",
-        nbf: Math.floor(Date.now() / 1000) + 1000,
-      }
-      const jwtRaw = generateJwt(keyId, tokenBodyNbf)
-      expect(
-        jwtHandler.verify(jwtRaw)
-      ).to.eventually.rejectedWith(jwt.NotBeforeError).notify(done)
-    })
-
-    it("should be rejected with JsonWebTokenError if the JWT is empty", (done) => {
-      expect(
-         jwtHandler.verify("")
-      ).to.be.rejectedWith(jwt.JsonWebTokenError).notify(done)
-    })
-
-    it("should be rejected with JsonWebTokenError if the JWT is null", (done) => {
-      expect(
-         jwtHandler.verify(null as any)
-      ).to.be.rejectedWith(jwt.JsonWebTokenError).notify(done)
-    })
-
-    it("should be rejected with JsonWebTokenError if the JWT is undefined", (done) => {
-      expect(
-         jwtHandler.verify(undefined as any)
-      ).to.be.rejectedWith(jwt.JsonWebTokenError).notify(done)
-    })
-
-    it("should be rejected with MissingKeyIdError if the JWT does not contain a kid property in the header", (done) => {
-      const jwtRaw = generateJwt(null, tokenBody)
-      expect(
-        jwtHandler.verify(jwtRaw)
-      ).to.eventually.rejectedWith(MissingKeyIdError).notify(done)
-    })
-
-    it("should be rejected with UnknownKeyIdError if the key id is unknown", (done) => {
-      const jwtRaw = generateJwt("unknown-key-id", tokenBody)
-      expect(
-        jwtHandler.verify(jwtRaw)
-      ).to.eventually.rejectedWith(UnknownKeyIdError).notify(done)
-    })
-
-    it("should be throw an Error if no pubkey resolver is specified", (done) => {
-      const jwtHandlerNoPubkeyResolver = new JwtHandler(debugNamePrefix, null, privkeyResolver)
-      const jwtRaw = generateJwt(keyId, tokenBody)
-      expect(
-        jwtHandlerNoPubkeyResolver.verify(jwtRaw)
-      ).to.eventually.rejectedWith(Error).notify(done)
-    })
-  })
-
-  describe("create", () => {
-    const jwtHandler = new JwtHandler(debugNamePrefix, pubkeyResolver, privkeyResolver)
-    it("should create a valid JWT if called with a key id that exists", (done) => {
-      jwtHandler.create(tokenBody, keyId)
+    describe("create", () => {
+        const jwtHandler = new JwtHandler(debugNamePrefix, pubkeyResolver, privkeyResolver)
+        it("should create a valid JWT if called with a key id that exists", (done) => {
+            jwtHandler.create(tokenBody, keyId)
                 .then((result) => {
-                  expect(
-                    result.match(/^[a-zA-Z0-9\-_]+?\.[a-zA-Z0-9\-_]+?\.([a-zA-Z0-9\-_]+)?$/)
-                  ).to.be.instanceof(Array)
-                  done()
+                    expect(
+                        result.match(/^[a-zA-Z0-9\-_]+?\.[a-zA-Z0-9\-_]+?\.([a-zA-Z0-9\-_]+)?$/),
+                    ).to.be.instanceof(Array)
+                    done()
                 })
+        })
+        it("should be rejected with UnknownKeyIdError with a key id that does not exist", (done) => {
+            const keyIdUnknown = "unknown-key-id"
+            expect(
+                jwtHandler.create(tokenBody, keyIdUnknown),
+            ).to.be.rejectedWith(UnknownKeyIdError).notify(done)
+        })
+        it("should be rejected with Error if no privkey resolver is specified", (done) => {
+            const jwtHandlerNoPrivkeyResolver = new JwtHandler(debugNamePrefix, pubkeyResolver, null)
+            expect(
+                jwtHandlerNoPrivkeyResolver.create(tokenBody, keyId),
+            ).to.be.rejectedWith(Error).notify(done)
+        })
+        // it("should be rejected with UnknownKeyIdError with a null key id", (done) => {
+        //   expect(
+        //     jwtHandler.create(tokenBody, null)
+        //   ).to.be.rejectedWith(UnknownKeyIdError).notify(done)
+        // })
     })
-    it("should be rejected with UnknownKeyIdError with a key id that does not exist", (done) => {
-      const keyIdUnknown = "unknown-key-id"
-      expect(
-        jwtHandler.create(tokenBody, keyIdUnknown)
-      ).to.be.rejectedWith(UnknownKeyIdError).notify(done)
-    })
-    it("should be rejected with Error if no privkey resolver is specified", (done) => {
-      const jwtHandlerNoPrivkeyResolver = new JwtHandler(debugNamePrefix, pubkeyResolver, null)
-      expect(
-        jwtHandlerNoPrivkeyResolver.create(tokenBody, keyId)
-      ).to.be.rejectedWith(Error).notify(done)
-    })
-    // it("should be rejected with UnknownKeyIdError with a null key id", (done) => {
-    //   expect(
-    //     jwtHandler.create(tokenBody, null)
-    //   ).to.be.rejectedWith(UnknownKeyIdError).notify(done)
-    // })
-  })
 })
 
 function generateJwt(kid: string | null, body: object) {
-  const header = kid ? {kid} : undefined
-  return jwt.sign(body, {
-    key: privateKey, passphrase: privateKeyPass}, {algorithm: "RS256", header}
-  )
+    const header = kid ? {kid} : undefined
+    return jwt.sign(body, {
+            key: privateKey, passphrase: privateKeyPass,
+        }, {algorithm: "RS256", header},
+    )
 }
 
 const cert = `
