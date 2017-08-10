@@ -1,4 +1,3 @@
-import * as Promise from "bluebird"
 import {JsonWebTokenError, VerifyOptions} from "jsonwebtoken"
 
 export {TokenExpiredError, NotBeforeError, JsonWebTokenError} from "jsonwebtoken"
