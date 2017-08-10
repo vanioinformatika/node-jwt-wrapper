@@ -14,6 +14,7 @@ export type PrivkeyData = { key: string, passphrase: string, alg: string } | und
 export type PubkeyResolver = (keyId: string) => PubkeyData | Promise<PubkeyData>
 export type PrivkeyResolver = (keyId: string) => PrivkeyData | Promise<PrivkeyData>
 
+// tslint:disable-next-line:max-line-length
 type JwtVerifyAsync = (token: string, publicKey: string | Buffer, options?: jwt.VerifyOptions) => Promise<object | string>
 type JwtSignAsync = (payload: string | Buffer | object, privateKey: {}, options?: jwt.SignOptions) => Promise<string>
 

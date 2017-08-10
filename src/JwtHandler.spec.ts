@@ -61,21 +61,21 @@ describe("JwtHandler", () => {
         it("should return the JWT body if passed a valid JWT", (done) => {
             const jwtRaw = generateJwt(keyId, tokenBody)
             expect(
-                jwtHandler.verify(jwtRaw),
+                jwtHandler.verify(jwtRaw)
             ).to.eventually.deep.equal(tokenBody).notify(done)
         })
 
         it("should return the JWT body if passed a valid JWT and validation options that matches the JWT", (done) => {
             const jwtRaw = generateJwt(keyId, tokenBody)
             expect(
-                jwtHandler.verify(jwtRaw, {issuer: tokenBody.iss}),
+                jwtHandler.verify(jwtRaw, {issuer: tokenBody.iss})
             ).to.eventually.deep.equal(tokenBody).notify(done)
         })
 
         it("should be rejected with JsonWebTokenError if the validation options do not match", (done) => {
             const jwtRaw = generateJwt(keyId, tokenBody)
             expect(
-                jwtHandler.verify(jwtRaw, {issuer: "expected_issuer"}),
+                jwtHandler.verify(jwtRaw, {issuer: "expected_issuer"})
             ).to.eventually.rejectedWith(jwt.JsonWebTokenError).notify(done)
         })
 
@@ -87,7 +87,7 @@ describe("JwtHandler", () => {
             }
             const jwtRaw = generateJwt(keyId, tokenBodyExpired)
             expect(
-                jwtHandler.verify(jwtRaw),
+                jwtHandler.verify(jwtRaw)
             ).to.eventually.rejectedWith(jwt.TokenExpiredError).notify(done)
         })
 
@@ -99,39 +99,40 @@ describe("JwtHandler", () => {
             }
             const jwtRaw = generateJwt(keyId, tokenBodyNbf)
             expect(
-                jwtHandler.verify(jwtRaw),
+                jwtHandler.verify(jwtRaw)
             ).to.eventually.rejectedWith(jwt.NotBeforeError).notify(done)
         })
 
         it("should be rejected with JsonWebTokenError if the JWT is empty", (done) => {
             expect(
-                jwtHandler.verify(""),
+                jwtHandler.verify("")
             ).to.be.rejectedWith(jwt.JsonWebTokenError).notify(done)
         })
 
         it("should be rejected with JsonWebTokenError if the JWT is null", (done) => {
             expect(
-                jwtHandler.verify(null as any),
+                jwtHandler.verify(null as any)
             ).to.be.rejectedWith(jwt.JsonWebTokenError).notify(done)
         })
 
         it("should be rejected with JsonWebTokenError if the JWT is undefined", (done) => {
             expect(
-                jwtHandler.verify(undefined as any),
+                jwtHandler.verify(undefined as any)
             ).to.be.rejectedWith(jwt.JsonWebTokenError).notify(done)
         })
 
+        // tslint:disable-next-line:max-line-length
         it("should be rejected with MissingKeyIdError if the JWT does not contain a kid property in the header", (done) => {
             const jwtRaw = generateJwt(null, tokenBody)
             expect(
-                jwtHandler.verify(jwtRaw),
+                jwtHandler.verify(jwtRaw)
             ).to.eventually.rejectedWith(MissingKeyIdError).notify(done)
         })
 
         it("should be rejected with UnknownKeyIdError if the key id is unknown", (done) => {
             const jwtRaw = generateJwt("unknown-key-id", tokenBody)
             expect(
-                jwtHandler.verify(jwtRaw),
+                jwtHandler.verify(jwtRaw)
             ).to.eventually.rejectedWith(UnknownKeyIdError).notify(done)
         })
 
@@ -139,7 +140,7 @@ describe("JwtHandler", () => {
             const jwtHandlerNoPubkeyResolver = new JwtHandler(debugNamePrefix, null, privkeyResolver)
             const jwtRaw = generateJwt(keyId, tokenBody)
             expect(
-                jwtHandlerNoPubkeyResolver.verify(jwtRaw),
+                jwtHandlerNoPubkeyResolver.verify(jwtRaw)
             ).to.eventually.rejectedWith(Error).notify(done)
         })
     })
@@ -150,7 +151,7 @@ describe("JwtHandler", () => {
             jwtHandler.create(tokenBody, keyId)
                 .then((result) => {
                     expect(
-                        result.match(/^[a-zA-Z0-9\-_]+?\.[a-zA-Z0-9\-_]+?\.([a-zA-Z0-9\-_]+)?$/),
+                        result.match(/^[a-zA-Z0-9\-_]+?\.[a-zA-Z0-9\-_]+?\.([a-zA-Z0-9\-_]+)?$/)
                     ).to.be.instanceof(Array)
                     done()
                 })
@@ -158,13 +159,13 @@ describe("JwtHandler", () => {
         it("should be rejected with UnknownKeyIdError with a key id that does not exist", (done) => {
             const keyIdUnknown = "unknown-key-id"
             expect(
-                jwtHandler.create(tokenBody, keyIdUnknown),
+                jwtHandler.create(tokenBody, keyIdUnknown)
             ).to.be.rejectedWith(UnknownKeyIdError).notify(done)
         })
         it("should be rejected with Error if no privkey resolver is specified", (done) => {
             const jwtHandlerNoPrivkeyResolver = new JwtHandler(debugNamePrefix, pubkeyResolver, null)
             expect(
-                jwtHandlerNoPrivkeyResolver.create(tokenBody, keyId),
+                jwtHandlerNoPrivkeyResolver.create(tokenBody, keyId)
             ).to.be.rejectedWith(Error).notify(done)
         })
         // it("should be rejected with UnknownKeyIdError with a null key id", (done) => {
@@ -179,7 +180,7 @@ function generateJwt(kid: string | null, body: object) {
     const header = kid ? {kid} : undefined
     return jwt.sign(body, {
             key: privateKey, passphrase: privateKeyPass,
-        }, {algorithm: "RS256", header},
+        }, {algorithm: "RS256", header}
     )
 }
 
