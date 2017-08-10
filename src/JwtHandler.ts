@@ -50,13 +50,11 @@ export class JwtHandler {
             if (jwtHeader.kid) {
                 return jwtHeader.kid
             }
-            throw new MissingKeyIdError()
         } catch (err) {
-            if (!(err instanceof MissingKeyIdError)) {
-                throw new jwt.JsonWebTokenError("JWT header parsing error", err)
-            }
-            throw err
+            throw new jwt.JsonWebTokenError("JWT header parsing error", err)
         }
+
+        throw new MissingKeyIdError()
     }
 
     /**
