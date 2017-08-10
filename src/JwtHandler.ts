@@ -15,7 +15,7 @@ export type PubkeyResolver = (keyId: string) => PubkeyData | Promise<PubkeyData>
 export type PrivkeyResolver = (keyId: string) => PrivkeyData | Promise<PrivkeyData>
 
 // tslint:disable-next-line:max-line-length
-type JwtVerifyAsync = (token: string, publicKey: string | Buffer, options?: jwt.VerifyOptions) => Promise<object | string>
+type JwtVerifyAsync = <T extends string | object>(token: string, publicKey: string | Buffer, options?: jwt.VerifyOptions) => Promise<T>
 type JwtSignAsync = (payload: string | Buffer | object, privateKey: {}, options?: jwt.SignOptions) => Promise<string>
 
 shim() // util.promisify shim
@@ -65,7 +65,7 @@ export class JwtHandler {
      * @param {Object} options Validation options (jsonwebtoken module options)
      * @return {Promise<Object, JsonWebTokenError>} Promise to the JWT body
      */
-    public async verify(jwtRaw: string, options?: jwt.VerifyOptions): Promise<string | { [key: string]: any }> {
+    public async verify<T extends string | { [key: string]: any }>(jwtRaw: string, options?: jwt.VerifyOptions): Promise<T> {
         if (!jwtRaw) {
             throw new jwt.JsonWebTokenError("Empty JWT")
         }
@@ -77,7 +77,7 @@ export class JwtHandler {
                 throw new UnknownKeyIdError(keyId)
             }
             debug("cert found")
-            return this.jwtVerifyAsync(jwtRaw, certData.cert, options)
+            return this.jwtVerifyAsync<T>(jwtRaw, certData.cert, options)
         }
         throw new Error("No public key resolver specified")
     }
