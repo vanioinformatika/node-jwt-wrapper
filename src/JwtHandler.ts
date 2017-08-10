@@ -14,8 +14,8 @@ export type PrivkeyData = { key: string, passphrase: string, alg: string } | und
 export type PubkeyResolver = (keyId: string) => PubkeyData | Promise<PubkeyData>
 export type PrivkeyResolver = (keyId: string) => PrivkeyData | Promise<PrivkeyData>
 
-type JwtVerifyAsync = (token: string, publicKey: string, options?: jwt.VerifyOptions) => Promise<object | string>
-type JwtSignAsync = (payload: object, privateKey: {}, options?: jwt.SignOptions) => Promise<string>
+type JwtVerifyAsync = (token: string, publicKey: string | Buffer, options?: jwt.VerifyOptions) => Promise<object | string>
+type JwtSignAsync = (payload: string | Buffer | object, privateKey: {}, options?: jwt.SignOptions) => Promise<string>
 
 shim() // util.promisify shim
 
@@ -66,7 +66,7 @@ export class JwtHandler {
      * @param {Object} options Validation options (jsonwebtoken module options)
      * @return {Promise<Object, JsonWebTokenError>} Promise to the JWT body
      */
-    public async verify(jwtRaw: string, options?: jwt.VerifyOptions): Promise<string | object> {
+    public async verify(jwtRaw: string, options?: jwt.VerifyOptions): Promise<string | { [key: string]: any }> {
         if (!jwtRaw) {
             throw new jwt.JsonWebTokenError("Empty JWT")
         }
@@ -90,7 +90,7 @@ export class JwtHandler {
      * @param {string} keyId The ID of the signing key
      * @return {Promise<Object, JsonWebTokenError>} Promise to the JWT body
      */
-    public async create(tokenBody: object, keyId: string): Promise<string> {
+    public async create(tokenBody: string | Buffer | { [key: string]: any }, keyId: string): Promise<string> {
         debug("create, key id: " + keyId)
         if (this.privkeyResolver) {
             const signingKey = await this.privkeyResolver(keyId)
