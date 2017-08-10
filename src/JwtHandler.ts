@@ -18,6 +18,12 @@ export type PrivkeyResolver = (keyId: string) => PrivkeyData | Promise<PrivkeyDa
 type JwtVerifyAsync = <T extends string | object>(token: string, publicKey: string | Buffer, options?: jwt.VerifyOptions) => Promise<T>
 type JwtSignAsync = (payload: string | Buffer | object, privateKey: {}, options?: jwt.SignOptions) => Promise<string>
 
+export interface JwtHandlerOptions {
+    debugNamePrefix: string
+    pubkeyResolver?: PubkeyResolver
+    privkeyResolver?: PrivkeyResolver
+}
+
 shim() // util.promisify shim
 
 export class JwtHandler {
@@ -30,12 +36,23 @@ export class JwtHandler {
     private jwtVerifyAsync = util.promisify(jwt.verify) as JwtVerifyAsync
     private jwtSignAsync = util.promisify(jwt.sign) as JwtSignAsync
 
+    public constructor(options: JwtHandlerOptions)
     public constructor(debugNamePrefix: string,
-                       pubkeyResolver: PubkeyResolver | null,
-                       privkeyResolver: PrivkeyResolver | null) {
-        this.debug = debug(debugNamePrefix + ":jwt.handler")
-        this.pubkeyResolver = pubkeyResolver
-        this.privkeyResolver = privkeyResolver
+                       pubkeyResolver?: PubkeyResolver | null,
+                       privkeyResolver?: PrivkeyResolver | null)
+    public constructor(arg1: string | JwtHandlerOptions, arg2?: PubkeyResolver | null, arg3?: PrivkeyResolver | null) {
+        if (typeof arg1 === "object") {
+            arg2 = arg1.pubkeyResolver
+            arg3 = arg1.privkeyResolver
+            arg1 = arg1.debugNamePrefix
+        }
+
+        arg2 = arg2 || null
+        arg3 = arg3 || null
+
+        this.debug = debug(arg1 + ":jwt.handler")
+        this.pubkeyResolver = arg2
+        this.privkeyResolver = arg3
     }
 
     /**
