@@ -8,7 +8,7 @@ import {shim} from "util.promisify"
 import {MissingKeyIdError} from "./MissingKeyIdError"
 import {UnknownKeyIdError} from "./UnknownKeyIdError"
 
-export type PubkeyData = { cert: string, alg: string } | undefined | null
+export type PubkeyData = { cert: string }
 export type PrivkeyData = { key: string, passphrase: string, alg: string } | undefined | null
 
 export type PubkeyResolver = (keyId: string) => PubkeyData | Promise<PubkeyData>
