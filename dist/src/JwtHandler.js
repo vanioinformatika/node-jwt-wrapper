@@ -17,12 +17,19 @@ const MissingKeyIdError_1 = require("./MissingKeyIdError");
 const UnknownKeyIdError_1 = require("./UnknownKeyIdError");
 util_promisify_1.shim(); // util.promisify shim
 class JwtHandler {
-    constructor(debugNamePrefix, pubkeyResolver, privkeyResolver) {
+    constructor(arg1, arg2, arg3) {
         this.jwtVerifyAsync = util.promisify(jwt.verify);
         this.jwtSignAsync = util.promisify(jwt.sign);
-        this.debug = debug(debugNamePrefix + ":jwt.handler");
-        this.pubkeyResolver = pubkeyResolver;
-        this.privkeyResolver = privkeyResolver;
+        if (typeof arg1 === "object") {
+            arg2 = arg1.pubkeyResolver;
+            arg3 = arg1.privkeyResolver;
+            arg1 = arg1.debugNamePrefix;
+        }
+        arg2 = arg2 || null;
+        arg3 = arg3 || null;
+        this.debug = debug(arg1 + ":jwt.handler");
+        this.pubkeyResolver = arg2;
+        this.privkeyResolver = arg3;
     }
     /**
      * Extract key ID from the given JWT
@@ -37,14 +44,11 @@ class JwtHandler {
             if (jwtHeader.kid) {
                 return jwtHeader.kid;
             }
-            throw new MissingKeyIdError_1.MissingKeyIdError();
         }
         catch (err) {
-            if (!(err instanceof MissingKeyIdError_1.MissingKeyIdError)) {
-                throw new jwt.JsonWebTokenError("JWT header parsing error", err);
-            }
-            throw err;
+            throw new jwt.JsonWebTokenError("JWT header parsing error", err);
         }
+        throw new MissingKeyIdError_1.MissingKeyIdError();
     }
     /**
      * Validates the given JWT
