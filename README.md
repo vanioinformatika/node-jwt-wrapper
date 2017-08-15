@@ -33,6 +33,14 @@ function privkeyResolver (keyId) {
 
 const jwtHandler = new jwt.JwtHandler('myproject', pubkeyResolver, privkeyResolver)
 
+// or with options object
+
+const jwtHandler = new jwt.JwtHandler({
+    debugNamePrefix: 'myproject',
+    pubkeyResolver: pubkeyResolver,
+    privkeyResolver: privkeyResolver,
+})
+
 // Verifying JWT tokens
 jwtHandler.verify(jwtRaw)
           .then(jwtBody => {
