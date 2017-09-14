@@ -5,10 +5,16 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Next release
 
+## 2.0.2 2017-09-14
+
+- All typeScript type dependencies moved to devDependencies
+
+## 2.0.1 2017-08-15
+
 - Add `options` object to `Handler`'s constructor
 - Make `verify` method's return value generic
 
-## 2.0.0 2017.08.09
+## 2.0.0 2017-08-09
 
 - Complete reimplementation in TypeScript
 
