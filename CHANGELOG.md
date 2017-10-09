@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Next release
 
+## 2.0.3
+
+- Update dependencies
+
 ## 2.0.2 2017-09-14
 
 - All typeScript type dependencies moved to devDependencies
