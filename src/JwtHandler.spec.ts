@@ -177,7 +177,7 @@ describe("JwtHandler", () => {
 })
 
 function generateJwt(kid: string | null, body: object) {
-    const header = kid ? {kid} : undefined
+    const header = kid ? {kid} : {}
     return jwt.sign(body, {
             key: privateKey, passphrase: privateKeyPass,
         }, {algorithm: "RS256", header}
