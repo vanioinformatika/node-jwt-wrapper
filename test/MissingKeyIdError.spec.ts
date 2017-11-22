@@ -2,7 +2,7 @@ import * as chai from "chai"
 import * as jwt from "jsonwebtoken"
 import "mocha"
 
-import {MissingKeyIdError} from "./MissingKeyIdError"
+import {MissingKeyIdError} from "../src/MissingKeyIdError"
 
 const {expect} = chai
 

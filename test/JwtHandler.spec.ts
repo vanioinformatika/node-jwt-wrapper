@@ -3,9 +3,9 @@ import * as chaiAsPromised from "chai-as-promised"
 import * as jwt from "jsonwebtoken"
 import "mocha"
 
-import {JwtHandler, PrivkeyData, PubkeyData} from "./JwtHandler"
-import {MissingKeyIdError} from "./MissingKeyIdError"
-import {UnknownKeyIdError} from "./UnknownKeyIdError"
+import {JwtHandler, PrivkeyData, PubkeyData} from "../src/JwtHandler"
+import {MissingKeyIdError} from "../src/MissingKeyIdError"
+import {UnknownKeyIdError} from "../src/UnknownKeyIdError"
 
 chai.use(chaiAsPromised)
 const {expect} = chai

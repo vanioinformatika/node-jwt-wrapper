@@ -32,7 +32,7 @@
     "coverage": "nyc npm run test",
     "coverage:ci": "npm run coverage && nyc report --reporter=text-lcov | coveralls",
     "test": "mocha --recursive --compilers ts:ts-node/register src/**/*.spec.ts",
-    "tslint": "tslint --fix src/**/*.ts",
+    "tslint": "tslint --fix src/**/*.ts test/**/*.ts",
     "preversion": "git push && npm test",
     "version": "npm run compile && git add -A dist",
     "postversion": "git push && git push --tags"
