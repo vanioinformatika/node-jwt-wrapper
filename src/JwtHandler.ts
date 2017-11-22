@@ -88,13 +88,13 @@ export class JwtHandler {
             throw new jwt.JsonWebTokenError("Empty JWT")
         }
         const keyId = await this.extractKeyId(jwtRaw)
-        debug("verify, key id: " + keyId)
+        this.debug("verify, key id: " + keyId)
         if (this.pubkeyResolver) {
             const certData = await this.pubkeyResolver(keyId)
             if (!certData) {
                 throw new UnknownKeyIdError(keyId)
             }
-            debug("cert found")
+            this.debug("cert found")
             return this.jwtVerifyAsync<T>(jwtRaw, certData.cert, options)
         }
         throw new Error("No public key resolver specified")
@@ -108,13 +108,13 @@ export class JwtHandler {
      * @return {Promise<Object, JsonWebTokenError>} Promise to the JWT body
      */
     public async create(tokenBody: string | Buffer | { [key: string]: any }, keyId: string): Promise<string> {
-        debug("create, key id: " + keyId)
+        this.debug("create, key id: " + keyId)
         if (this.privkeyResolver) {
             const signingKey = await this.privkeyResolver(keyId)
             if (!signingKey) {
                 throw new UnknownKeyIdError("Unknown key id")
             }
-            debug("priv key found")
+            this.debug("priv key found")
             return this.jwtSignAsync(tokenBody, signingKey, {algorithm: signingKey.alg, header: {kid: keyId}})
         }
         throw new Error("No private key resolver specified")
