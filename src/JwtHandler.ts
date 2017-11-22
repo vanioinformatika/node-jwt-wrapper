@@ -112,7 +112,7 @@ export class JwtHandler {
         if (this.privkeyResolver) {
             const signingKey = await this.privkeyResolver(keyId)
             if (!signingKey) {
-                throw new UnknownKeyIdError("Unknown key id")
+                throw new UnknownKeyIdError(keyId)
             }
             this.debug("priv key found")
             return this.jwtSignAsync(tokenBody, signingKey, {algorithm: signingKey.alg, header: {kid: keyId}})
