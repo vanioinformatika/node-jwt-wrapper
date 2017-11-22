@@ -63,13 +63,13 @@ class JwtHandler {
                 throw new jwt.JsonWebTokenError("Empty JWT");
             }
             const keyId = yield this.extractKeyId(jwtRaw);
-            debug("verify, key id: " + keyId);
+            this.debug("verify, key id: " + keyId);
             if (this.pubkeyResolver) {
                 const certData = yield this.pubkeyResolver(keyId);
                 if (!certData) {
                     throw new UnknownKeyIdError_1.UnknownKeyIdError(keyId);
                 }
-                debug("cert found");
+                this.debug("cert found");
                 return this.jwtVerifyAsync(jwtRaw, certData.cert, options);
             }
             throw new Error("No public key resolver specified");
@@ -84,13 +84,13 @@ class JwtHandler {
      */
     create(tokenBody, keyId) {
         return __awaiter(this, void 0, void 0, function* () {
-            debug("create, key id: " + keyId);
+            this.debug("create, key id: " + keyId);
             if (this.privkeyResolver) {
                 const signingKey = yield this.privkeyResolver(keyId);
                 if (!signingKey) {
-                    throw new UnknownKeyIdError_1.UnknownKeyIdError("Unknown key id");
+                    throw new UnknownKeyIdError_1.UnknownKeyIdError(keyId);
                 }
-                debug("priv key found");
+                this.debug("priv key found");
                 return this.jwtSignAsync(tokenBody, signingKey, { algorithm: signingKey.alg, header: { kid: keyId } });
             }
             throw new Error("No private key resolver specified");
