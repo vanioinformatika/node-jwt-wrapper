@@ -1,21 +1,20 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const base64url = require("base64url");
+const base64url_1 = require("base64url");
 const debug = require("debug");
 const jwt = require("jsonwebtoken");
 const util = require("util");
-const util_promisify_1 = require("util.promisify");
 const MissingKeyIdError_1 = require("./MissingKeyIdError");
 const UnknownKeyIdError_1 = require("./UnknownKeyIdError");
-util_promisify_1.shim(); // util.promisify shim
 class JwtHandler {
     constructor(arg1, arg2, arg3) {
         this.jwtVerifyAsync = util.promisify(jwt.verify);
@@ -40,7 +39,7 @@ class JwtHandler {
     extractKeyId(jwtRaw) {
         try {
             const jwtHeaderBase64 = jwtRaw.split(".", 1);
-            const jwtHeader = JSON.parse(base64url.decode(jwtHeaderBase64[0]));
+            const jwtHeader = JSON.parse(base64url_1.default.decode(jwtHeaderBase64[0]));
             if (jwtHeader.kid) {
                 return jwtHeader.kid;
             }

@@ -7,7 +7,7 @@ export declare type PubkeyData = {
 export declare type PrivkeyData = {
     key: string;
     passphrase: string;
-    alg: string;
+    alg: jwt.Algorithm;
 } | undefined | null;
 export declare type PubkeyResolver = (keyId: string) => PubkeyData | Promise<PubkeyData>;
 export declare type PrivkeyResolver = (keyId: string) => PrivkeyData | Promise<PrivkeyData>;

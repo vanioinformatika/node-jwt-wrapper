@@ -1,5 +1,6 @@
 import * as chai from "chai"
 import * as chaiAsPromised from "chai-as-promised"
+import * as dirtyChai from "dirty-chai"
 import * as jwt from "jsonwebtoken"
 import "mocha"
 
@@ -7,7 +8,10 @@ import {JwtHandler, PrivkeyData, PubkeyData} from "../src/JwtHandler"
 import {MissingKeyIdError} from "../src/MissingKeyIdError"
 import {UnknownKeyIdError} from "../src/UnknownKeyIdError"
 
+import * as util from "util"
+
 chai.use(chaiAsPromised)
+chai.use(dirtyChai)
 const {expect} = chai
 
 const debugNamePrefix = "test"
@@ -30,6 +34,23 @@ function privkeyResolver(privkeyId: string): PrivkeyData {
 }
 
 describe("JwtHandler", () => {
+
+    describe("constructor", () => {
+        it("should create a new instance if the arguments are passed in an options object", () => {
+            const jwtHandler = new JwtHandler({ debugNamePrefix, pubkeyResolver, privkeyResolver })
+            expect(jwtHandler).to.exist("JwtHandler")
+            expect(util.inspect(jwtHandler)).to.contain('Function: pubkeyResolver')
+            expect(util.inspect(jwtHandler)).to.contain('Function: privkeyResolver')
+            expect(util.inspect(jwtHandler)).to.contain(debugNamePrefix)
+        })
+        it("should create a new instance if the arguments are passed as function parameters", () => {
+            const jwtHandler = new JwtHandler(debugNamePrefix, pubkeyResolver, privkeyResolver)
+            expect(jwtHandler).to.exist("JwtHandler")
+            expect(util.inspect(jwtHandler)).to.contain('Function: pubkeyResolver')
+            expect(util.inspect(jwtHandler)).to.contain('Function: privkeyResolver')
+            expect(util.inspect(jwtHandler)).to.contain(debugNamePrefix)
+        })
+    })
 
     describe("extractKeyId", () => {
         const jwtHandler = new JwtHandler(debugNamePrefix, pubkeyResolver, privkeyResolver)

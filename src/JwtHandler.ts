@@ -1,15 +1,14 @@
-import base64url = require("base64url")
+import base64url from "base64url"
 import debug = require("debug")
 import * as jwt from "jsonwebtoken"
 
 import * as util from "util"
-import {shim} from "util.promisify"
 
 import {MissingKeyIdError} from "./MissingKeyIdError"
 import {UnknownKeyIdError} from "./UnknownKeyIdError"
 
 export type PubkeyData = { cert: string, alg?: string } | undefined | null
-export type PrivkeyData = { key: string, passphrase: string, alg: string } | undefined | null
+export type PrivkeyData = { key: string, passphrase: string, alg: jwt.Algorithm } | undefined | null
 
 export type PubkeyResolver = (keyId: string) => PubkeyData | Promise<PubkeyData>
 export type PrivkeyResolver = (keyId: string) => PrivkeyData | Promise<PrivkeyData>
@@ -23,8 +22,6 @@ export interface JwtHandlerOptions {
     pubkeyResolver?: PubkeyResolver
     privkeyResolver?: PrivkeyResolver
 }
-
-shim() // util.promisify shim
 
 export class JwtHandler {
 
