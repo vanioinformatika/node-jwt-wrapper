@@ -5,10 +5,15 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Next release
 
-## 2.0.4
+## 2.0.5
 
 - Update dependencies
 - Remove node.js 8 support
+
+## 2.0.4
+
+- Update dependencies
+- Small fixes
 
 ## 2.0.3
 
